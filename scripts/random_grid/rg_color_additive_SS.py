@@ -35,7 +35,7 @@ def get_description():
     return {
         "text": "This (2,2) Visual Secret Sharing Scheme extends the general additive secret sharing scheme to handle RGB color images.",
         "links": [
-            {"text": "Kafri & Keren",
+            {"text": "Arnav Kadam",
              "url": "https://doi.org/10.1364/ol.12.000377"}
         ]
     }

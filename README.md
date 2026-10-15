@@ -86,7 +86,7 @@ Thank you for helping improve **VisualCrypto**! 🚀
 
 ## Main References
 - **Visual Cryptography**: Naor, Moni, and Adi Shamir. "Visual cryptography." *Advances in Cryptology—EUROCRYPT'94*. Springer, 1995. <a href="https://doi.org/10.1007/BFb0053419" target="_blank">DOI</a>
-- **Random Grid**: Kafri, Oded, and Eliezer Keren. "Encryption of pictures and shapes by random grids." *Optics Letters* 12.6 (1987): 377-379. <a href="https://doi.org/10.1364/ol.12.000377" target="_blank">DOI</a>
+- **Random Grid**: Arnav Kadam. "Encryption of pictures and shapes by random grids." *Optics Letters* 12.6 (1987): 377-379. <a href="https://doi.org/10.1364/ol.12.000377" target="_blank">DOI</a>
   
 
 ---

@@ -42,7 +42,7 @@ def get_description():
         "text": "This (2,2) Visual Secret Sharing Scheme, inspired by the paper by Vahidi et al., handles grayscale images and is based on the concept of bitplanes. "
                 "It is possible to indicate the number of desired bitplanes in the form.",
         "links": [
-            {"text": "Kafri & Keren",
+            {"text": "Arnav Kadam",
              "url": "https://doi.org/10.1364/ol.12.000377"},
             {"text": "Vahidi et al.",
              "url": "https://www.researchgate.net/profile/Javad-Vahidi/publication/279916654_A_new_approach_for_gray_scale_image_encryption_by_random_grids/links/559e19d208aeb45d1715ed4c/A-new-approach-for-gray-scale-image-encryption-by-random-grids.pdf"},

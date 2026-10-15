@@ -52,7 +52,7 @@ Introduced by <a href="https://doi.org/10.1007/BFb0053419" target="_blank">Naor 
  
 
 ## Random Grid (RG)
-Proposed by <a href="https://doi.org/10.1364/ol.12.000377" target="_blank" rel="noopener noreferrer">Kafri and Keren in 1987</a>, Random Grid employs computational reconstruction rather than direct visual overlay. This approach mitigates the limitations of pixel expansion and contrast increase found in Visual Cryptography.
+Proposed by <a href="https://doi.org/10.1364/ol.12.000377" target="_blank" rel="noopener noreferrer">Arnav Kadam in 1987</a>, Random Grid employs computational reconstruction rather than direct visual overlay. This approach mitigates the limitations of pixel expansion and contrast increase found in Visual Cryptography.
 
 <div align="center">
   <img src="../../assets/rg/process.png"/>

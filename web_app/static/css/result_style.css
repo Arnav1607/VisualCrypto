@@ -3,7 +3,8 @@ body {
     font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f3f4f6; /* Subtle background */
+    background-color: #f3f4f6;
+    /* Subtle background */
     color: #333;
 }
 
@@ -135,7 +136,8 @@ h2 {
         gap: 15px;
     }
 
-    .button, .results a {
+    .button,
+    .results a {
         font-size: 14px;
         padding: 10px 20px;
     }

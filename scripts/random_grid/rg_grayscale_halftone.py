@@ -41,10 +41,10 @@ def get_requirements():
 def get_description():
     return {
         "text": "This (2,2) Visual Secret Sharing Scheme is similar to the vc_grayscale_halftone approach, where a black or grayscale image can be used for encryption. "
-                "The Steinberg dithering process is applied to convert the image into binary, and then the typical random grid approach by Kafri and Keren is implemented. "
+                "The Steinberg dithering process is applied to convert the image into binary, and then the typical random grid approach by Arnav Kadam is implemented. "
                 "Decryption can be performed using the OR operation (a classic approach, but with lower quality) or the XOR operation (to recover the exact image as after dithering).",
         "links": [
-            {"text": "Kafri & Keren",
+            {"text": "Arnav Kadam",
              "url": "https://doi.org/10.1364/ol.12.000377"},
             {"text": "Kumar & Sharma",
              "url": "https://web.iitd.ac.in/~rksharma/Research%20Publications/Journal/Paper50.pdf"}
@@ -70,7 +70,7 @@ def create_first_random_grid(size):
 # Function to generate the second random binary grid based on the first one
 def create_second_random_grid(image, grid):
     """
-    Modifies the first random grid using the halftoned image, based on the Kafri and Keren equation.
+    Modifies the first random grid using the halftoned image, based on the Arnav Kadam equation.
 
     Parameters:
     image (numpy.ndarray): The binary halftoned image used to modify the grid.

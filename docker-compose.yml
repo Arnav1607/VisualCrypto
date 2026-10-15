@@ -1,0 +1,22 @@
+services:
+  visualcrypto:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: visualcrypto-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5000}:5000"
+    environment:
+      - PORT=5000
+      - HOST=0.0.0.0
+      - FLASK_DEBUG=false
+      - MAX_CONTENT_LENGTH_MB=16
+      - SECRET_KEY=${SECRET_KEY:-visualcrypto-super-secret-key-change-me}
+      - FILE_CLEANUP_MAX_AGE_SECONDS=3600
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

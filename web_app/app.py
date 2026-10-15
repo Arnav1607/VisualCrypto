@@ -1,16 +1,74 @@
-from PIL import Image
-from flask import Flask, render_template, request, url_for, jsonify
+import sys
 import os
+import time
+import uuid
+import secrets
+from PIL import Image
+from werkzeug.utils import secure_filename
+from flask import Flask, render_template, request, url_for, jsonify
+
+# Add project root directory to sys.path so 'scripts' module can be imported
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from algo_interface import ALGORITHM_MODULES
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['OUTPUT_FOLDER'] = 'static/output'
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
+app.config['OUTPUT_FOLDER'] = os.path.join(app.root_path, 'static', 'output')
+
+# Production Configuration: Max upload limit (default 16MB) and session secret key
+max_mb = int(os.environ.get('MAX_CONTENT_LENGTH_MB', '16'))
+app.config['MAX_CONTENT_LENGTH'] = max_mb * 1024 * 1024
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
 # Ensure folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
+
+
+def cleanup_old_files(max_age_seconds=None):
+    """Periodically removes orphaned uploads and generated shares older than max_age_seconds."""
+    if max_age_seconds is None:
+        max_age_seconds = int(os.environ.get('FILE_CLEANUP_MAX_AGE_SECONDS', '3600'))
+    now = time.time()
+    for folder in [app.config['UPLOAD_FOLDER'], app.config['OUTPUT_FOLDER']]:
+        try:
+            for entry in os.scandir(folder):
+                if entry.is_file() and entry.name != '.gitkeep':
+                    try:
+                        if now - entry.stat().st_mtime > max_age_seconds:
+                            os.remove(entry.path)
+                    except OSError:
+                        pass
+        except Exception:
+            pass
+
+
+# Route for health monitoring (for Docker, Kubernetes, Render, Railway, AWS ECS)
+@app.route('/health', methods=['GET'])
+@app.route('/api/health', methods=['GET'])
+def health():
+    return jsonify({
+        "status": "healthy",
+        "service": "VisualCrypto",
+        "algorithms_loaded": len(ALGORITHM_MODULES)
+    }), 200
+
+
+# Error Handlers for Production
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    return render_template('error.html', error_message=f"File exceeds maximum upload limit of {max_mb} MB."), 413
+
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('error.html', error_message="Requested resource not found."), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return render_template('error.html', error_message="An internal server error occurred while processing."), 500
 
 
 # Route for the main page
@@ -71,6 +129,9 @@ def get_algorithm_requirements(algorithm, operation):
 @app.route('/process', methods=['POST'])
 def process():
     try:
+        # Periodically clean up stale files
+        cleanup_old_files()
+
         operation = request.form['operation']
         algorithm = request.form['algorithm']
 
@@ -85,12 +146,17 @@ def process():
         num_images = requirements.get("num_images", 1)
         parameters = requirements.get("parameters", {})
 
+        # Unique batch ID for this operation to isolate concurrent requests
+        batch_id = uuid.uuid4().hex[:10]
+
         # Dynamically retrieve uploaded images based on num_images
         input_paths = []
         for i in range(1, num_images + 1):
             file = request.files.get(f"image{i}")
             if file and file.filename:
-                save_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+                safe_name = secure_filename(file.filename) or f"input_{i}.png"
+                unique_filename = f"{batch_id}_in_{i}_{safe_name}"
+                save_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
                 file.save(save_path)
                 input_paths.append(save_path)
 
@@ -109,30 +175,31 @@ def process():
                 param_values[param_key] = int(request.form.get(param_key, param_config.get("default", 0)))
             elif param_config["type"] == "select":
                 param_values[param_key] = request.form.get(param_key, param_config.get("default"))
-            # Here it is possible to add other types of requirements for new schemes
 
         # Call the appropriate method dynamically
         if operation == "encryption":
             encrypt_method = algorithm_module.get("encrypt")
-            result = encrypt_method(*images, *param_values.values())  # Pass images first, then only parameter values
-            return save_and_render_shares(*result, extension=algorithm_module.get("extension"))
+            result = encrypt_method(*images, *param_values.values())
+            return save_and_render_shares(*result, batch_id=batch_id, extension=algorithm_module.get("extension"))
 
         elif operation == "decryption":
             decrypt_method = algorithm_module.get("decrypt")
-            result = decrypt_method(*images, *param_values.values())  # Pass images first, then only parameter values
-            return save_and_render_decryption_result(result, algorithm_module.get("extension"))
+            result = decrypt_method(*images, *param_values.values())
+            return save_and_render_decryption_result(result, batch_id=batch_id, extension=algorithm_module.get("extension"))
 
     except Exception as e:
         error_message = str(e)
         return render_template('error.html', error_message=error_message), 500
 
 
-def save_and_render_shares(*shares, extension, output_folder='output'):
+def save_and_render_shares(*shares, batch_id=None, extension='png', output_folder='output'):
+    if batch_id is None:
+        batch_id = uuid.uuid4().hex[:10]
     share_urls = []
     download_urls = []
 
     for i, share in enumerate(shares, start=1):
-        filename = f"share{i}.{extension}"
+        filename = f"{batch_id}_share{i}.{extension}"
         share_path = os.path.join(app.config['OUTPUT_FOLDER'], filename)
 
         # Save shares
@@ -142,27 +209,32 @@ def save_and_render_shares(*shares, extension, output_folder='output'):
         share_urls.append(url_for('static', filename=f'{output_folder}/{filename}'))
         download_urls.append(url_for('static', filename=f'{output_folder}/{filename}'))
 
-    # Render results dynamically. This rendering handles the case where more than 2 shares are generated.
+    # Render results dynamically
     return render_template(
         'enc_result.html',
         share_urls=share_urls,
         download_urls=download_urls,
-        zip=zip  # For using zip in the loop of enc_result.html
+        zip=zip
     )
 
 
-# Helper function to handle decryption and rendering results
-def save_and_render_decryption_result(result_image, extension, output_folder='output'):
-    result_path = os.path.join(app.config['OUTPUT_FOLDER'], f'decrypted.{extension}')
+def save_and_render_decryption_result(result_image, batch_id=None, extension='png', output_folder='output'):
+    if batch_id is None:
+        batch_id = uuid.uuid4().hex[:10]
+    filename = f"{batch_id}_decrypted.{extension}"
+    result_path = os.path.join(app.config['OUTPUT_FOLDER'], filename)
     result_image.save(result_path)
 
     # Render results
     return render_template(
         'dec_result.html',
-        result_url=url_for('static', filename=f'{output_folder}/decrypted.{extension}'),
-        result_download=url_for('static', filename=f'{output_folder}/decrypted.{extension}')
+        result_url=url_for('static', filename=f'{output_folder}/{filename}'),
+        result_download=url_for('static', filename=f'{output_folder}/{filename}')
     )
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    host = os.environ.get('HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() in ('true', '1', 'yes')
+    app.run(host=host, port=port, debug=debug)

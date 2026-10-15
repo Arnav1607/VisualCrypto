@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='icon.svg') }}">
 </head>
+
 <body>
     <div class="container">
         <h1>VisualCrypto</h1>
@@ -53,7 +55,7 @@
 
     <script>
         // Load the list of available algorithms inside the <select> and show the description of the first one
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             fetch('/api/algorithm_list')
                 .then(response => response.json())
                 .then(data => {
@@ -78,13 +80,13 @@
         });
 
         // When algorithm change => Fetch the requirments, update the UI and the info-box
-        document.getElementById('algorithm').addEventListener('change', function() {
+        document.getElementById('algorithm').addEventListener('change', function () {
             fetchAndUpdateRequirements()    // Get requirements and update the additional requirement's fields
             updateInformationBox()          // Change info-box
         });
 
         // When operation change => Fetch the requirments and update the UI
-        document.getElementById('operation').addEventListener('change', function() {
+        document.getElementById('operation').addEventListener('change', function () {
             fetchAndUpdateRequirements()    // Get requirements and update the additional requirement's fields
 
             // Change the text under the image section
@@ -217,4 +219,5 @@
     </script>
 
 </body>
+
 </html>
