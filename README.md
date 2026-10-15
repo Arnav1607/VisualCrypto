@@ -14,7 +14,7 @@
 [![Documentation Available](https://img.shields.io/badge/Documentation-Available-green)](https://coduri.github.io/VisualCrypto/)
 [![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-orange)](https://coduri.github.io/VisualCrypto/pages/contributing/)
 [![License](https://img.shields.io/badge/License-MIT-red)](https://github.com/coduri/VisualCrypto/blob/main/LICENSE)
-
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Arnav1607/VisualCrypto)
 
 </div>
 

@@ -16,5 +16,12 @@ from web_app.app import app
 if __name__ == '__main__':
     host = os.environ.get('HOST', '0.0.0.0')
     port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_DEBUG', 'false').lower() in ('true', '1', 'yes')
-    app.run(host=host, port=port, debug=debug)
+    if not debug:
+        try:
+            from waitress import serve
+            print(f"Serving VisualCrypto on http://{host}:{port} with Waitress WSGI...")
+            serve(app, host=host, port=port, threads=4)
+        except ImportError:
+            app.run(host=host, port=port, debug=debug)
+    else:
+        app.run(host=host, port=port, debug=debug)
